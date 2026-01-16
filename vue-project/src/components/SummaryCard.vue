@@ -9,6 +9,8 @@ const props = defineProps({
   xirrPct: { type: Number, default: null },
   absReturnPct: { type: Number, default: null },
   units: { type: Number, default: null },
+  costPerUnit: { type: Number, default: null },
+  breakevenDateISO: { type: String, default: null },
 })
 
 const profitClass = (v) => (v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu')
@@ -39,7 +41,7 @@ const profitClass = (v) => (v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu')
       </div>
     </div>
 
-    <div v-if="absReturnPct != null || units != null" class="submetrics">
+    <div v-if="absReturnPct != null || units != null || costPerUnit != null || breakevenDateISO" class="submetrics">
       <div v-if="absReturnPct != null">
         <span class="metric__label">Absolute return:</span>
         <span class="metric__inline">{{ formatPct(absReturnPct) }}</span>
@@ -47,6 +49,14 @@ const profitClass = (v) => (v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu')
       <div v-if="units != null">
         <span class="metric__label">Units:</span>
         <span class="metric__inline">{{ formatNumber(units, 4) }}</span>
+      </div>
+      <div v-if="costPerUnit != null">
+        <span class="metric__label">Avg cost / unit:</span>
+        <span class="metric__inline">₹{{ formatNumber(costPerUnit, 4) }}</span>
+      </div>
+      <div v-if="breakevenDateISO">
+        <span class="metric__label">Breakeven date:</span>
+        <span class="metric__inline">{{ breakevenDateISO }}</span>
       </div>
     </div>
   </div>

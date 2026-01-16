@@ -121,6 +121,8 @@ const dataset = computed(() => [
           :xirr-pct="summary.xirrPct"
           :abs-return-pct="summary.absReturnPct"
           :units="summary.totalUnits"
+          :cost-per-unit="summary.costPerUnit"
+          :breakeven-date-iso="summary.breakevenDateISO"
         />
 
         <div class="card">

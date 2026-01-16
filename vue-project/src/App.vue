@@ -4,7 +4,7 @@
   <div class="app">
     <header class="topbar">
       <div>
-        <div class="brand">Mutual Fund Historical SIP Tracker</div>
+        <div class="brand">Mutual Fund Historical SIP Simulator</div>
         <div class="subtitle">Browser-only • mfapi.in NAV history • IndexedDB cached</div>
       </div>
     </header>

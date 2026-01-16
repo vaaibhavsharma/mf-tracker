@@ -76,3 +76,26 @@ export function formatPct(value, digits = 2) {
   if (!Number.isFinite(n)) return '—'
   return `${formatNumber(n, digits)}%`
 }
+
+export function formatMonthYear(iso) {
+  if (!iso || typeof iso !== 'string') return ''
+  const [y, m, d] = iso.split('-').map((v) => Number(v))
+  if (!y || !m || !d) return iso
+  const date = new Date(y, m - 1, d)
+  return new Intl.DateTimeFormat('en-IN', {
+    month: 'short',
+    year: '2-digit',
+  }).format(date)
+}
+
+export function formatDateLong(iso) {
+  if (!iso || typeof iso !== 'string') return ''
+  const [y, m, d] = iso.split('-').map((v) => Number(v))
+  if (!y || !m || !d) return iso
+  const date = new Date(y, m - 1, d)
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
