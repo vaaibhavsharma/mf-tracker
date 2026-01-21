@@ -99,3 +99,22 @@ export function formatDateLong(iso) {
     year: 'numeric',
   }).format(date)
 }
+
+export function diffMonthsISO(startISO, endISO) {
+  const start = isoToDate(startISO)
+  const end = isoToDate(endISO)
+  if (!start || !end) return null
+  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+  if (end.getDate() < start.getDate()) months -= 1
+  return Math.max(0, months)
+}
+
+export function formatDurationMonths(months) {
+  const m = Number(months)
+  if (!Number.isFinite(m) || m < 0) return '—'
+  const years = Math.floor(m / 12)
+  const rem = m % 12
+  if (years && rem) return `${years}y ${rem}m`
+  if (years) return `${years}y`
+  return `${rem}m`
+}

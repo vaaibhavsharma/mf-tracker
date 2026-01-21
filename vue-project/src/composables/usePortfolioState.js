@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { todayISO } from '../utils/date'
 
 const LS_FUNDS = 'mfTracker.funds.v1'
 const LS_CONFIGS = 'mfTracker.configs.v1'
@@ -23,7 +24,14 @@ export function usePortfolioState() {
 
   const storedConfigs = safeJsonParse(localStorage.getItem(LS_CONFIGS), {})
   if (storedConfigs && typeof storedConfigs === 'object') {
-    sipConfigsByScheme.value = storedConfigs
+    const normalized = {}
+    for (const [code, cfg] of Object.entries(storedConfigs)) {
+      normalized[code] = {
+        endDateISO: todayISO(),
+        ...cfg,
+      }
+    }
+    sipConfigsByScheme.value = normalized
   }
 
   // Persist
@@ -52,6 +60,7 @@ export function usePortfolioState() {
         [code]: {
           amount: 1000,
           startDateISO: '',
+          endDateISO: todayISO(),
           frequency: 'monthly',
           stepUpPctAnnual: 0,
           executionRule: 'next',
@@ -76,11 +85,26 @@ export function usePortfolioState() {
     }
   }
 
+  function setPortfolioState(payload) {
+    if (!payload || typeof payload !== 'object') return
+    const funds = Array.isArray(payload.fundSchemeCodes)
+      ? payload.fundSchemeCodes.map((v) => String(v)).filter(Boolean)
+      : []
+    const configs =
+      payload.sipConfigsByScheme && typeof payload.sipConfigsByScheme === 'object'
+        ? payload.sipConfigsByScheme
+        : {}
+
+    fundSchemeCodes.value = funds
+    sipConfigsByScheme.value = configs
+  }
+
   return {
     fundSchemeCodes,
     sipConfigsByScheme,
     addFund,
     removeFund,
     updateSipConfig,
+    setPortfolioState,
   }
 }

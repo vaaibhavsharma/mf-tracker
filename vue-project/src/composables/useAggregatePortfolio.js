@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { dateToISO, diffMonthsISO } from '../utils/date'
 import { xirr } from '../utils/xirr'
 
 /**
@@ -29,6 +30,14 @@ export function useAggregatePortfolio(fundMetricsRef, selectedSchemeCodesRef) {
     const absReturnPct = totalInvested > 0 ? (profit / totalInvested) * 100 : null
 
     const flows = funds.flatMap((f) => (Array.isArray(f.cashflows) ? f.cashflows : []))
+    const flowDates = flows.map((f) => f?.date).filter((d) => d instanceof Date)
+    const fromISO = flowDates.length
+      ? dateToISO(new Date(Math.min(...flowDates.map((d) => d.getTime()))))
+      : null
+    const toISO = flowDates.length
+      ? dateToISO(new Date(Math.max(...flowDates.map((d) => d.getTime()))))
+      : null
+    const investedMonths = fromISO && toISO ? diffMonthsISO(fromISO, toISO) : null
     // XIRR needs both positive and negative flows.
     const rate = flows.length >= 2 ? xirr(flows) : null
 
@@ -39,6 +48,9 @@ export function useAggregatePortfolio(fundMetricsRef, selectedSchemeCodesRef) {
       absReturnPct,
       xirrPct: rate == null ? null : rate * 100,
       fundsCount: funds.length,
+      investedFromISO: fromISO,
+      investedToISO: toISO,
+      investedMonths,
     }
   })
 

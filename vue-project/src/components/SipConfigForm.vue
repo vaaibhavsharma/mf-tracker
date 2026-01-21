@@ -19,6 +19,11 @@ const startDateISO = computed({
   set: (v) => emit('update:modelValue', { ...props.modelValue, startDateISO: v }),
 })
 
+const endDateISO = computed({
+  get: () => props.modelValue.endDateISO || '',
+  set: (v) => emit('update:modelValue', { ...props.modelValue, endDateISO: v }),
+})
+
 const stepUpPctAnnual = computed({
   get: () => props.modelValue.stepUpPctAnnual ?? 0,
   set: (v) => emit('update:modelValue', { ...props.modelValue, stepUpPctAnnual: Number(v) }),
@@ -45,6 +50,12 @@ const executionRule = computed({
         <!-- Using a native date input gives an unambiguous ISO date; we store it as YYYY-MM-DD -->
         <input class="input" type="date" v-model="startDateISO" :disabled="disabled" />
         <div class="hint">Monthly SIP executes on the day-of-month of your start date.</div>
+      </div>
+
+      <div class="field">
+        <label class="label">SIP end date (optional)</label>
+        <input class="input" type="date" v-model="endDateISO" :disabled="disabled" />
+        <div class="hint">Defaults to today. Set an earlier end date to stop SIPs.</div>
       </div>
 
       <div class="field">

@@ -8,7 +8,7 @@ import FundList from '../components/FundList.vue'
 import FundConfigCard from '../components/FundConfigCard.vue'
 import PortfolioSummary from '../components/PortfolioSummary.vue'
 
-const { fundSchemeCodes, sipConfigsByScheme, addFund, removeFund, updateSipConfig } =
+const { fundSchemeCodes, sipConfigsByScheme, addFund, removeFund, updateSipConfig, setPortfolioState } =
   usePortfolioState()
 
 const selectedSchemeCodes = ref([])
@@ -17,6 +17,47 @@ const selectedSchemeCodes = ref([])
 if (!selectedSchemeCodes.value.length && fundSchemeCodes.value.length) {
   selectedSchemeCodes.value = [...fundSchemeCodes.value]
 }
+
+function encodeSharePayload(payload) {
+  try {
+    const json = JSON.stringify(payload)
+    const b64 = btoa(unescape(encodeURIComponent(json)))
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+  } catch {
+    return ''
+  }
+}
+
+function decodeShareParam(param) {
+  try {
+    const normalized = param.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized + '==='.slice((normalized.length + 3) % 4)
+    const json = decodeURIComponent(escape(atob(padded)))
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
+}
+
+function applySharedState() {
+  const params = new URLSearchParams(window.location.search)
+  const shared = params.get('share')
+  if (!shared) return
+  const payload = decodeShareParam(shared)
+  if (!payload) return
+  setPortfolioState(payload)
+  selectedSchemeCodes.value = Array.isArray(payload.fundSchemeCodes)
+    ? payload.fundSchemeCodes.map((v) => String(v)).filter(Boolean)
+    : []
+
+  params.delete('share')
+  const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${
+    window.location.hash || ''
+  }`
+  window.history.replaceState({}, '', next)
+}
+
+applySharedState()
 
 function toggleSelected(schemeCode) {
   const code = String(schemeCode)
@@ -100,6 +141,34 @@ function buildTotalSeries(selectedCodes, metricsByScheme) {
 }
 
 const totalSeries = computed(() => buildTotalSeries(selectedSchemeCodes.value, fundMetricsStore.value))
+
+const shareUrl = computed(() => {
+  const payload = {
+    fundSchemeCodes: fundSchemeCodes.value,
+    sipConfigsByScheme: sipConfigsByScheme.value,
+  }
+  const encoded = encodeSharePayload(payload)
+  if (!encoded) return ''
+  const url = new URL(window.location.href)
+  url.searchParams.set('share', encoded)
+  return url.toString()
+})
+
+const shareStatus = ref('')
+async function copyShareLink() {
+  shareStatus.value = ''
+  const url = shareUrl.value
+  if (!url) {
+    shareStatus.value = 'Nothing to share yet.'
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(url)
+    shareStatus.value = 'Share link copied.'
+  } catch {
+    shareStatus.value = 'Copy failed. Select and copy the link below.'
+  }
+}
 </script>
 
 <template>
@@ -113,6 +182,15 @@ const totalSeries = computed(() => buildTotalSeries(selectedSchemeCodes.value, f
           @toggle="toggleSelected"
           @remove="handleRemoveFund"
         />
+        <div class="card">
+          <div class="card__title">Share portfolio</div>
+          <div class="hint">Creates a link with your funds and SIP settings encoded.</div>
+          <div class="share">
+            <button class="btn" type="button" @click="copyShareLink">Copy share link</button>
+            <div v-if="shareStatus" class="hint" style="margin-top: 6px">{{ shareStatus }}</div>
+            <input v-if="shareUrl" class="input" :value="shareUrl" readonly />
+          </div>
+        </div>
       </aside>
 
       <main class="content">
@@ -155,6 +233,11 @@ const totalSeries = computed(() => buildTotalSeries(selectedSchemeCodes.value, f
 .content {
   display: grid;
   gap: 12px;
+}
+.share {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
 }
 .configs {
   display: grid;

@@ -23,6 +23,13 @@ export function useSipCalculator({ navOnOrBefore, navOnOrAfter, latest, earliest
     const today = isoToDate(todayISO())
     if (start.getTime() > today.getTime()) return 'Start date cannot be in the future'
 
+    if (cfg.endDateISO) {
+      const end = isoToDate(cfg.endDateISO)
+      if (!end) return 'Invalid end date'
+      if (end.getTime() > today.getTime()) return 'End date cannot be in the future'
+      if (end.getTime() < start.getTime()) return 'End date cannot be before start date'
+    }
+
     if (!earliest.value) return null
     const fundLaunchDate = isoToDate(earliest.value.dateISO)
     if (start.getTime() < fundLaunchDate.getTime()) {
@@ -43,6 +50,8 @@ export function useSipCalculator({ navOnOrBefore, navOnOrAfter, latest, earliest
     const stepUpPctAnnual = Number(cfg.stepUpPctAnnual || 0)
 
     const today = isoToDate(todayISO())
+    const endDate = cfg.endDateISO ? isoToDate(cfg.endDateISO) : today
+    const lastDate = endDate && endDate.getTime() < today.getTime() ? endDate : today
 
     const rows = []
     let cumulativeUnits = 0
@@ -58,7 +67,7 @@ export function useSipCalculator({ navOnOrBefore, navOnOrAfter, latest, earliest
     // We clamp day-of-month (e.g. 31st -> 30th/28th when needed).
     for (let i = 0; i < 2000; i += 1) {
       const scheduledDate = addMonthsKeepingDay(start, i, day)
-      if (scheduledDate.getTime() > today.getTime()) break
+      if (scheduledDate.getTime() > lastDate.getTime()) break
 
       const targetISO = dateToISO(scheduledDate)
       const navPoint =

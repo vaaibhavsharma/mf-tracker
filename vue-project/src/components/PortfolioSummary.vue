@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { formatINR, formatPct } from '../utils/date'
+import { formatDurationMonths, formatINR, formatPct } from '../utils/date'
 import LineChart from './LineChart.vue'
 
 const props = defineProps({
@@ -35,6 +35,12 @@ const dataset = computed(() => [
         <div>
           <div class="metric__label">Total invested</div>
           <div class="metric__value">{{ formatINR(summary.totalInvested) }}</div>
+        </div>
+        <div>
+          <div class="metric__label">Time invested</div>
+          <div class="metric__value">
+            {{ summary.investedMonths == null ? '—' : formatDurationMonths(summary.investedMonths) }}
+          </div>
         </div>
         <div>
           <div class="metric__label">Current value</div>
